@@ -21,20 +21,20 @@ const standardCardImageUrl = "https://www.konami.com/efootball/s/img/page/dreamt
 
 // 1. ปรับข้อมูลการ์ดตามแพ็คใหม่ (Epic 3, Highlight 8, Standard 139)
 const epicCardsData = [
-  { name: "Eden Hazard", image: "https://efimg.com/efootballhub22/images/player_cards/88045755863174_l.png" },
-  { name: "Diego Costa", image: "https://efimg.com/efootballhub22/images/player_cards/88045487427597_l.png" },
-  { name: "Gary Cahill", image: "https://efimg.com/efootballhub22/images/player_cards/88045487423105_l.png" }
+  { name: "Leonardo Bonucci", image: "https://efimg.com/efootballhub22/images/player_cards/88045755859255_l.png" },
+  { name: "Giorgio Chiellini", image: "https://efimg.com/efootballhub22/images/player_cards/88045755835027_l.png" },
+  { name: "Daniele De Rossi", image: "https://efimg.com/efootballhub22/images/player_cards/88045755829779_l.png" }
 ];
 
 const highlightCardsData = [
-  { name: "Benoit Badiashile", image: "https://efimg.com/efootballhub22/images/player_cards/105868528054502_l.png" },
-  { name: "Robert Sanchez", image: "https://efimg.com/efootballhub22/images/player_cards/105868528055595_l.png" },
-  { name: "Liam Delap", image: "https://efimg.com/efootballhub22/images/player_cards/105868528068056_l.png" },
-  { name: "Dario Essugo", image: "https://efimg.com/efootballhub22/images/player_cards/105868528071235_l.png" },
-  { name: "Levi Colwill", image: "https://efimg.com/efootballhub22/images/player_cards/105868528074316_l.png" },
-  { name: "Romeo Lavia", image: "https://efimg.com/efootballhub22/images/player_cards/105868528075260_l.png" },
-  { name: "Mamadou Sarr", image: "https://efimg.com/efootballhub22/images/player_cards/105868528086725_l.png" },
-  { name: "Jamie Gittens", image: "https://efimg.com/efootballhub22/images/player_cards/105868528101388_l.png" }
+  { name: "Eric Dier", image: "https://efimg.com/efootballhub22/images/player_cards/105872017635655_l.png" },
+  { name: "Fabian Schar", image: "https://efimg.com/efootballhub22/images/player_cards/105872017647710_l.png" },
+  { name: "Leonardo Spinazzola", image: "https://efimg.com/efootballhub22/images/player_cards/105872017688854_l.png" },
+  { name: "Joe Gomez", image: "https://efimg.com/efootballhub22/images/player_cards/105872017692561_l.png" },
+  { name: "Ola Aina", image: "https://efimg.com/efootballhub22/images/player_cards/105872017697151_l.png" },
+  { name: "Antonio Raillo", image: "https://efimg.com/efootballhub22/images/player_cards/105872017697333_l.png" },
+  { name: "Pierre Lees Melou", image: "https://efimg.com/efootballhub22/images/player_cards/105872017697490_l.png" },
+  { name: "Matty Cash", image: "https://efimg.com/efootballhub22/images/player_cards/105872017702253_l.png" }
 ];
 
 const standardCardsData = Array.from({ length: 139 }, (_, index) => ({
