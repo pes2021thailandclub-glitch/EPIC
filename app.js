@@ -1,10 +1,9 @@
-// DOM elements from index.html (เพิ่มปุ่มเปิดฟรี)
+// DOM elements from index.html
 const slider = document.getElementById("coinSlider");
 const input = document.getElementById("coinInput");
 const dashboardSummary = document.getElementById("dashboardSummary");
 const compareGrid = document.getElementById("compareGrid");
 const probabilityTableBody = document.getElementById("probabilityTableBody");
-const openFreeBtn = document.getElementById("openFreeBtn"); // เพิ่มปุ่มเปิดฟรี
 const openSingleBtn = document.getElementById("openSingleBtn");
 const openTenBtn = document.getElementById("openTenBtn");
 const resetOpeningBtn = document.getElementById("resetOpeningBtn");
@@ -49,7 +48,6 @@ let openedCards = [];
 let totalCoinsSpent = 0;
 let openedCardKeys = new Set();
 let remainingPackPool = [];
-let isFreeChanceUsed = false; // รักษาสถานะเปิดฟรี (ใช้ได้ครั้งเดียว)
 
 // Initialization of main catalog cards
 function createCard(type, index, cardData, isOpened = false) {
@@ -109,9 +107,7 @@ function resetOpeningState() {
   totalCoinsSpent = 0;
   openedCardKeys = new Set();
   remainingPackPool = createOpeningPool();
-  isFreeChanceUsed = false; // รีเซ็ตสถานะเปิดฟรี
-  if (openFreeBtn) openFreeBtn.disabled = false; // เปิดให้กดฟรีใหม่ได้เมื่อรีเซ็ต
-  
+
   openingSummary.innerHTML = 'No cards opened yet<br><span class="opening-user">Opened by: You</span>';
   openingStats.textContent = `Coins spent: ${totalCoinsSpent.toLocaleString()}`;
   openingHistory.innerHTML = '';
@@ -133,10 +129,10 @@ function renderOpeningResults() {
 
   // แฟลชประวัติเฉพาะการ์ดตระกูลสเปเชียล (Epic, Highlight)
   openingHistory.innerHTML = openedCards
-   .filter((item) => item.type === "epic" || item.type === "highlight")
+    .filter((item) => item.type === "epic" || item.type === "highlight")
     .map((item) => {
       let badgeClass = item.type;
-     let badgeText = item.type === "epic" ? "EPIC" : "Highlight";
+      let badgeText = item.type === "epic" ? "EPIC" : "Highlight";
       return `
         <div class="opening-history-item">
           <span class="history-badge ${badgeClass}">${badgeText}</span>
@@ -153,7 +149,7 @@ function renderOpeningResults() {
   });
 }
 
-function executeDraw(drawCount, isFree = false) {
+function executeDraw(drawCount) {
   const safeCount = Math.max(1, Math.min(10, drawCount));
   const availableCount = Math.min(safeCount, remainingPackPool.length);
 
@@ -162,15 +158,9 @@ function executeDraw(drawCount, isFree = false) {
     return;
   }
 
-  // 2. ถ้าเป็นตั๋วฟรี ไม่ต้องหัก Coins คอนฟิกแบบปกติคริตตามจำนวนสุ่ม
-  if (!isFree) {
-    const coinsUsed = safeCount === 1 ? 100 : 900;
-    totalCoinsSpent += coinsUsed;
-  } else {
-    isFreeChanceUsed = true;
-    if (openFreeBtn) openFreeBtn.disabled = true; // กดใช้แล้วปิดปุ่มทันที
-  }
-  
+  const coinsUsed = safeCount === 1 ? 100 : 900;
+  totalCoinsSpent += coinsUsed;
+
   const currentDrawResult = [];
   for (let i = 0; i < availableCount; i++) {
     const selectedCard = remainingPackPool.pop();
@@ -180,7 +170,7 @@ function executeDraw(drawCount, isFree = false) {
   }
 
   openedCards = [...openedCards, ...currentDrawResult];
-  openingStats.textContent = `Coins spent: ${totalCoinsSpent.toLocaleString()}${isFreeChanceUsed ? " (ใช้สิทธิ์เปิดฟรีแล้ว)" : ""}`;
+  openingStats.textContent = `Coins spent: ${totalCoinsSpent.toLocaleString()}`;
   
   renderOpeningResults();
 }
@@ -205,79 +195,6 @@ function renderDashboard(result, draw) {
       <span class="summary-value" style="font-size: 0.95rem; line-height: 1.4;">Epic: ${result.expectedEpic} <br> HL: ${result.expectedHl}</span>
     </div>
   `;
-}
-
-// ฟังก์ชันคำนวณความน่าจะเป็นพื้นฐาน (จำลองโครงสร้างใหม่)
-function probability(draws) {
-  const n = 150;
-
-  // โอกาสสุ่มได้ขั้นต่ำ 1 ใบแบบ Hypergeometric (เปิดโดยไม่ใส่คืน)
-  const hyperChance = (k, d) => {
-    if (d > n - k) return 100; // หากดึงมากเกินกว่าจำนวนที่ไม่มีการ์ดใบนั้น โอกาสจะได้คือ 100%
-    let probNoHit = 1;
-    for (let i = 0; i < d; i++) {
-      probNoHit *= (n - k - i) / (n - i);
-    }
-    return (1 - probNoHit) * 100;
-  };
-
-  return {
-    epicChance: hyperChance(epicCardsData.length, draws),
-    hlChance: hyperChance(highlightCardsData.length, draws),
-    expectedEpic: Math.round((epicCardsData.length / n) * draws),
-    expectedHl: Math.round((highlightCardsData.length / n) * draws)
-  };
-}
-
-function renderCompareMode(currentCoin) {
-  const compareValues = [1000, 3000, 5000, 10000];
-
-  compareGrid.innerHTML = compareValues.map((coinValue) => {
-    const draw = Math.floor(coinValue / 100);
-    const result = probability(draw);
-    const isActive = coinValue === currentCoin;
-
-    return `
-      <div class="compare-card ${isActive ? "active" : ""}">
-        <span class="compare-label">${coinValue.toLocaleString()} Coins</span>
-        <span class="compare-value">${draw} draws</span>
-        <div style="color: #fbbf24; font-weight: 700;">Epic: ${result.epicChance.toFixed(1)}%</div>
-        <div style="color: #ec4899; font-weight: 700;">Highlight: ${result.hlChance.toFixed(1)}%</div>
-      </div>
-    `;
-  }).join("");
-}
-
-function renderProbabilityTable(currentCoin) {
-  const tableValues = [1000, 2000, 3000, 5000, 10000, 15000];
-
-  probabilityTableBody.innerHTML = tableValues.map((coinValue) => {
-    const draw = Math.floor(coinValue / 100);
-    const result = probability(draw);
-    const isActive = coinValue === currentCoin;
-    const epicPct = Math.min(100, result.epicChance);
-    const hlPct = Math.min(100, result.hlChance);
-
-    return `
-      <tr class="${isActive ? "row-gold-highlight" : ""}">
-        <td class="coin-col">${coinValue.toLocaleString()}</td>
-        <td class="draw-col">${draw} draws</td>
-        <td class="prob-col">
-          <div class="progress-wrapper">
-            <div class="progress-bar bar-gold" style="width: ${epicPct.toFixed(1)}%"></div>
-            <span class="pct-text">${epicPct.toFixed(1)}%</span>
-          </div>
-        </td>
-        <td class="prob-col">
-          <div class="progress-wrapper">
-            <div class="progress-bar bar-pink" style="width: ${hlPct.toFixed(1)}%; background-color:#ec4899;"></div>
-            <span class="pct-text">${hlPct.toFixed(1)}%</span>
-          </div>
-        </td>
-        <td class="draw-col" style="font-size: 0.85rem; font-weight: 600;">Epic ${result.expectedEpic} · HL ${result.expectedHl}</td>
-      </tr>
-    `;
-  }).join("");
 }
 
 // Monte Carlo การจำลองพูลใหม่
@@ -351,14 +268,58 @@ function renderSimulation(draws) {
   `;
 }
 
-// 4. ผูก Event Listeners รวมถึงฟังก์ชันเปิดฟรี
-if (openFreeBtn) {
-  openFreeBtn.addEventListener("click", () => {
-    if (!isFreeChanceUsed) {
-      executeDraw(1, true); // พารามิเตอร์ที่ 2 ส่ง true เพื่อระบุว่าเป็นฟรี
-    }
-  });
+function renderCompareMode(currentCoin) {
+  const compareValues = [1000, 3000, 5000, 10000];
+
+  compareGrid.innerHTML = compareValues.map((coinValue) => {
+    const draw = Math.floor(coinValue / 100);
+    const result = probability(draw);
+    const isActive = coinValue === currentCoin;
+
+    return `
+      <div class="compare-card ${isActive ? "active" : ""}">
+        <span class="compare-label">${coinValue.toLocaleString()} Coins</span>
+        <span class="compare-value">${draw} draws</span>
+        <div style="color: #fbbf24; font-weight: 700;">Epic: ${result.epicChance.toFixed(1)}%</div>
+        <div style="color: #ec4899; font-weight: 700;">Highlight: ${result.hlChance.toFixed(1)}%</div>
+      </div>
+    `;
+  }).join("");
 }
+
+function renderProbabilityTable(currentCoin) {
+  const tableValues = [1000, 2000, 3000, 5000, 10000, 15000];
+
+  probabilityTableBody.innerHTML = tableValues.map((coinValue) => {
+    const draw = Math.floor(coinValue / 100);
+    const result = probability(draw);
+    const isActive = coinValue === currentCoin;
+    const epicPct = Math.min(100, result.epicChance);
+    const hlPct = Math.min(100, result.hlChance);
+
+    return `
+      <tr class="${isActive ? "row-gold-highlight" : ""}">
+        <td class="coin-col">${coinValue.toLocaleString()}</td>
+        <td class="draw-col">${draw} draws</td>
+        <td class="prob-col">
+          <div class="progress-wrapper">
+            <div class="progress-bar bar-gold" style="width: ${epicPct.toFixed(1)}%"></div>
+            <span class="pct-text">${epicPct.toFixed(1)}%</span>
+          </div>
+        </td>
+        <td class="prob-col">
+          <div class="progress-wrapper">
+            <div class="progress-bar bar-pink" style="width: ${hlPct.toFixed(1)}%; background-color:#ec4899;"></div>
+            <span class="pct-text">${hlPct.toFixed(1)}%</span>
+          </div>
+        </td>
+        <td class="draw-col" style="font-size: 0.85rem; font-weight: 600;">Epic ${result.expectedEpic} · HL ${result.expectedHl}</td>
+      </tr>
+    `;
+  }).join("");
+}
+
+// 4. ผูก Event Listeners
 slider.addEventListener("input", update);
 input.addEventListener("input", update);
 openSingleBtn.addEventListener("click", () => executeDraw(1));
